@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriFit Pro v10 - Gym, Casa e Implementos</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7fafc;
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 80px; 
+            color: #2d3748;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+        }
+        h1, h2, h3 { text-align: center; color: #1a365d; margin-top: 10px; }
+        #pantalla-login { text-align: center; padding: 20px 5px; }
+        .login-icon { font-size: 55px; margin-bottom: 10px; }
+        .error-msg { color: #e53e3e; font-weight: bold; margin-top: 12px; display: none; }
+        #app-principal { display: none; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 14px; background: #edf2f7; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; color: #4a5568; cursor: pointer; }
+        .tab-btn.active { background: #2b6cb0; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; color: #4a5568; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 15px; background-color: #fff; }
+        .action-btn { width: 100%; padding: 14px; background-color: #2b6cb0; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .action-btn:hover { background-color: #2c5282; }
+        .calorie-box { background: #2b6cb0; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 15px; margin-bottom: 15px; border: 2px solid #1a365d; }
+        .result-box { margin-top: 15px; display: none; }
+        .meal-card, .exercise-item, .tech-card { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 6px solid #3182ce; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .exercise-item { border-left-color: #38a169; }
+        .tech-card { border-left-color: #d69e2e; background: #fffaf0; }
+        .warmup-item { border-left-color: #e53e3e !important; background: #fff5f5; }
+        .cardio-item { border-left-color: #1a365d !important; background: #ebf8ff; }
+        .meal-title, .routine-header { font-weight: bold; color: #1a365d; font-size: 17px; }
+        .food-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 15px; }
+        .food-name { font-weight: 500; color: #4a5568; }
+        .food-qty { font-weight: bold; color: #1a202c; }
+        .tip-box, .zero-box { background: #e6fffa; border: 1px solid #b2f5ea; padding: 12px; border-radius: 6px; font-size: 14px; color: #234e52; margin-bottom: 12px; }
+        .zero-box { background: #fff5f5; border-color: #fed7d7; color: #c53030; }
+        .swap-box { background: #ebf8ff; border: 1px solid #bee3f8; padding: 12px; border-radius: 8px; margin-top: 10px; }
+        .week-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        @media(max-width: 480px) { .week-selector { grid-template-columns: repeat(3, 1fr); } }
+        .day-check-btn { padding: 10px; background: #edf2f7; border: 2px solid #cbd5e0; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; color: #4a5568; }
+        .day-check-btn.selected { background: #3182ce; color: white; border-color: #2b6cb0; }
+        .day-check-btn.disabled { background: #e2e8f0; color: #a0aec0; cursor: not-allowed; border-color: #e2e8f0; }
+        .agenda-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; margin-bottom: 15px; }
+        .agenda-view-btn { padding: 11px 14px; background: #fff; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; color: #2b6cb0; flex: 1; min-width: 80px; text-align: center; }
+        .agenda-view-btn.active-day { background: #48bb78; color: white; border-color: #38a169; }
+        .ex-layout { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .btn-help { background: #edf2f7; border: 1px solid #cbd5e0; padding: 6px 10px; border-radius: 6px; font-size: 13px; text-decoration: none; color: #4a5568; font-weight: bold; cursor: pointer; }
+        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: white; border-radius: 50px; padding: 12px 20px; font-weight: bold; font-size: 15px; box-shadow: 0px 4px 10px rgba(0,0,0,0.25); text-decoration: none; z-index: 100; display: flex; align-items: center; gap: 8px; }
+        .promo-box { background: #fff9db; border: 2px dashed #f59f00; padding: 18px; border-radius: 10px; text-align: center; margin-top: 25px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="pantalla-login">
+        <div class="login-icon">🔒</div>
+        <h2>NutriFit Acceso Clientes</h2>
+        <p style="color: #718096; font-size: 14px; margin-bottom: 25px;">Ingresa tu código personal para activar tu pauta interactiva.</p>
+        <div class="form-group" style="text-align: left;">
+            <label for="codigo-cliente">Código de Acceso:</label>
+            <input type="text" id="codigo-cliente" placeholder="Ej: NUTRIFIT01, PRO01" onkeypress="verificarEnter(event)" style="text-transform: uppercase;">
+        </div>
+        <button class="action-btn" style="background-color: #2c5282;" onclick="validarCodigo()">Validar e Ingresar</button>
+        <button class="action-btn" style="background-color: #25d366; margin-top:10px;" onclick="irAWhatsApp('¡Hola Profe! Me interesa probar la app de NutriFit. ¿Me podría dar un código de acceso por favor?')">Solicitar código por WhatsApp 💬</button>
+        <div id="mensaje-error" class="error-msg">⚠️ Código incorrecto o ya expirado. Verifica con tu entrenador.</div>
+    </div>
+
+    <div id="pantalla-bloqueada" style="display: none; text-align: center; padding: 30px 10px;">
+        <div class="login-icon" style="color: #e53e3e;">⏰</div>
+        <h2 style="color: #c53030;">¡Tu Semana de Prueba Terminó!</h2>
+        <p style="color: #4a5568; font-size: 15px; margin-bottom: 20px;">Si te gustó la aplicación y quieres seguir entrenando firmemente, ¡comunícate directamente a mi WhatsApp para activar tu plan y continuar tu proceso!</p>
+        
+        <div style="background: #f7fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; text-align: left; margin-bottom: 20px; max-width: 420px; margin-left: auto; margin-right: auto;">
+            <p style="margin: 5px 0;"><strong>• Plan App Mensual Base:</strong> $10.000 / mes</p>
+            <p style="margin: 5px 0; color: #2b6cb0; font-weight: bold;"><strong>🔥 Plan Asesoría Premium Semanal:</strong> $35.000 / Trimestre (Incluye control mental y de dolores cada semana, ajuste continuo de pautas y las técnicas profesionales del Profe para poder comer gustos los fines de semana sin frenar tus resultados).</p>
+            <p style="margin: 5px 0; color: #38a169; font-weight: bold;"><strong>👥 ¡PLAN DÚO!:</strong> Si entrenas acompañado, pregunten por interno por el valor especial de inscripción para dos personas.</p>
+        </div>
+        <button class="action-btn" style="background-color: #25d366;" onclick="irAWhatsApp('¡Hola Profe! Me gustó mucho la aplicación y quiero seguir usándola. Me gustaría consultar por los planes disponibles, especialmente por el Plan Premium Semanal o el Plan Dúo.')">Comunicarse al WhatsApp del Profe 📱</button>
+    </div>
+
+    <div id="app-principal">
+        <h1 style="margin-bottom:2px;">NutriFit Pro</h1>
+        <p style="text-align:center; font-size:12px; color:#718096; margin:0 0 15px 0; font-weight:bold;">Plataforma Oficial de Asesorías Deportivas</p>
+        <div id="trial-counter" style="text-align: center; background: #edf2f7; padding: 8px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; font-weight: bold;"></div>
+        
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="cambiarPestaña('nutricion', this)">🍎 Dieta Inteligente</button>
+            <button class="tab-btn" onclick="cambiarPestaña('entrenamiento', this)">🏋️ Mi Agenda Entrenamiento</button>
+        </div>
+
+        <div id="nutricion" class="tab-content active">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="sexo">Tu Sexo Biológico:</label>
+                    <select id="sexo" onchange="actualizarTodoDinamicamente()">
+                        <option value="hombre">Hombre 🧔</option>
+                        <option value="mujer">Mujer 👩</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edad">Edad (Años):</label>
+                    <input type="number" id="edad" value="48" min="1" oninput="actualizarTodoDinamicamente()">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="peso">Peso Actual (kg):</label>
+                    <input type="number" id="peso" value="84" min="10" oninput="actualizarTodoDinamicamente()">
+                </div>
+                <div class="form-group">
+                    <label for="estatura">Estatura (cm):</label>
+                    <input type="number" id="estatura" value="166" min="50" oninput="actualizarTodoDinamicamente()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="objetivo">Selecciona tu Meta:</label>
+                <select id="objetivo" onchange="actualizarTodoDinamicamente()">
+                    <option value="recomposicion">Bajar Grasa y Crear Músculo (Recomposición)</option>
+                    <option value="perder">Perder Grasa Corporal (Definición Extrema)</option>
+                    <option value="ganar">Subir Masa Muscular (Volumen Limpio)</option>
+                </select>
+            </div>
+            <button class="action-btn" onclick="generarDietaCompleta()">Calcular Mi Pauta de Alimentos</button>
+
+            <div id="resultado-dieta" class="result-box">
+                <div class="calorie-box" id="info-calorias">Tus Calorías Objetivas: -- kcal / día</div>
+                
+                <div class="zero-box" style="background-color:#fffbeb; border-color:#fef3c7; color:#b45309; font-size:13px; font-weight:bold; text-align:center;">
+                    ⚠️ NOTA PROFESIONAL: Todos los alimentos se miden y pesan en CRUDO antes de cocinar.
+                </div>
+
+                <div class="tech-card">
+                    <div style="font-weight: bold; color: #b7791f; font-size: 15px; margin-bottom: 5px;">🧠 LOS PILARES DEL PROFE: Técnica, Horarios e Inflamación</div>
+                    <p style="font-size: 13px; margin: 4px 0; color: #744210;">• <strong>El Horario Importa:</strong> Procura establecer horas fijas para tus comidas. No dejes pasar más de 4 horas sin proteína para proteger tu masa magra.</p>
+                    <p style="font-size: 13px; margin: 4px 0; color: #744210;">• <strong>¿Grasa o Inflamación?:</strong> Muchos creen estar estancados, pero solo están inflamados por alimentos de mala calidad. Bebe suficiente agua (35ml por cada kilo de peso) para limpiar tu organismo.</p>
+                    <p style="font-size: 13px; margin: 4px 0; color: #744210;">• <strong>Ventana Nocturna:</strong> Deja pasar al menos 1 hora y media desde tu última comida antes de ir a dormir para asegurar un descanso reparador y óptimo.</p>
+                </div>
+
+                <h2>📋 Planificación de Comidas Personalizada</h2>
+                
+                <div class="meal-card" style="border-left-color: #e53e3e;">
+                    <div class="meal-title">🍳 1. Desayuno (Al despertar)</div>
+                    <label style="font-size:11px; margin-top:4px; color:#718096;">Elige tu opción de proteína:</label>
+                    <select id="prot-desayuno" onchange="ajustarDesayuno()" style="padding:6px; font-size:13px; margin-bottom:8px;">
+                        <option value="huevos">Huevos Enteros (Revueltos o Cocidos)</option>
+                        <option value="queso-gauda">Queso Gauda Amarillo</option>
+                        <option value="quesillo">Quesillo o Queso Blanco Fresco</option>
+                        <option value="jamon-pollo">Jamón de Pechuga de Pollo / Pavo</option>
+                    </select>
+                    <div class="food-item" style="border-top: 1px solid #e2e8f0;"><span class="food-name">Base de Carbohidrato: Pan Integral</span><span class="food-qty" id="des-pan-qty">--</span></div>
+                    <div class="food-item"><span class="food-name" id="des-prot-nombre">Proteína</span><span class="food-qty" id="des-prot-qty">--</span></div>
+                    
+                    <label style="font-size:11px; margin-top:4px; color:#718096;">Elige tu fuente de grasas esenciales:</label>
+                    <select id="grasa-desayuno" onchange="ajustarDesayuno()" style="padding:4px; font-size:13px; margin-bottom:4px;">
+                        <option value="palta">Palta Molida 🥑</option>
+                        <option value="aceite">Aceite de Oliva (Para cocinar)</option>
+                    </select>
+                    <div class="food-item"><span class="food-name" id="des-grasa-nombre">Grasa</span><span class="food-qty" id="des-grasa-qty">--</span></div>
+                    <div class="food-item"><span class="food-name">Lácteo Base: Leche Semidescremada</span><span class="food-qty">250 ml (1 taza)</span></div>
+                </div>
+
+                <div class="meal-card" style="border-left-color: #9c27b0;">
+                    <div class="meal-title">🕒 2. Colación Media Mañana</div>
+                    <label style="font-size:11px; margin-top:4px; color:#718096;">Elige tu opción rápida:</label>
+                    <select id="opcion-colacion" onchange="ajustarColacion()" style="padding:6px; font-size:13px; margin-bottom:8px;">
+                        <option value="yogur">Yogur Proteico + Frutos Secos</option>
+                        <option value="leche">Leche Proteica en Caja + Fruta</option>
+                        <option value="fruta-proteina">Batido de Proteína + Fruta Fresca</option>
+                    </select>
+                    <div class="food-item" style="border-top: 1px solid #e2e8f0;"><span class="food-name" id="col-nombre-uno">Opción</span><span class="food-qty" id="col-qty-uno">--</span></div>
+                    <div class="food-item"><span class="food-name" id="col-nombre-dos">Complemento</span><span class="food-qty" id="col-qty-dos">--</span></div>
+                </div>
+                
+                <div class="meal-card" style="border-left-color: #2196f3;">
+                    <div class="meal-title">🥩 3. Almuerzo Principal</div>
+                    <div class="form-grid" style="margin-bottom: 8px;">
+                        <select id="proteina-almuerzo" onchange="ajustarAlmuerzoYCarbo()" style="padding:6px; font-size:13px;">
+                            <option value="pollo">Pechuga de Pollo / Pavo</option>
+                            <option value="vacuno">Carne de Vacuno Magra (Molida 4%)</option>
+                            <option value="atun">Atún al Agua en Lata 🐟</option>
+                            <option value="pescado">Pescado Blanco (Reineta/Merluza)</option>
+                        </select>
+                        <select id="carbo-almuerzo" onchange="ajustarAlmuerzoYCarbo()" style="padding:6px; font-size:13px;">
+                            <option value="arroz">Arroz Blanco/Integral</option>
+                            <option value="papas">Papas Cocidas 🥔</option>
+                            <option value="fideos">Fideos / Tallarines</option>
+                        </select>
+                    </div>
+                    <div class="food-item" style="border-top: 1px solid #e2e8f0;"><span class="food-name" id="alm-proteina-nombre">Proteína (en crudo)</span><span class="food-qty" id="alm-proteina-qty">-- g</span></div>
+                    <div class="food-item"><span class="food-name" id="alm-carbo-nombre">Carbohidrato (en crudo)</span><span class="food-qty" id="alm-carbo-qty">-- g</span></div>
+                    
+                    <div class="swap-box">
+                        <div style="font-weight:bold; font-size:12px; color:#2b6cb0; margin-bottom:5px;">🔄 Intercambiador Inteligente de Carbohidratos:</div>
+                        <p style="font-size:11px; color:#4a5568; margin: 2px 0;">Si hoy no quieres el carbohidrato de arriba, cámbialo ingresando tus gramos objetivos:</p>
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <input type="number" id="swap-input-grams" placeholder="Gramos de la pauta" oninput="calcularEquivalencias()" style="padding:5px; font-size:12px; flex:1;">
+                            <select id="swap-select-type" onchange="calcularEquivalencias()" style="padding:5px; font-size:12px; flex:1;">
+                                <option value="arroz">Si tu pauta dice Arroz</option>
+                                <option value="papas">Si tu pauta dice Papas</option>
+                                <option value="fideos">Si tu pauta dice Fideos</option>
+                            </select>
+                        </div>
+                        <div id="swap-results" style="font-size:12px; color:#2d3748; margin-top:8px; line-height:1.4; display:none;"></div>
+                    </div>
+                    
+                    <div class="tip-box" id="texto-ensalada" style="margin-top:10px; margin-bottom:0; font-weight:500;"></div>
+                </div>
+
+                <div class="meal-card" style="border-left-color: #ff9800;">
+                    <div class="meal-title">🍏 4. Colación de la Tarde</div>
+                    <label style="font-size:11px; margin-top:4px; color:#718096;">Elige tu merienda:</label>
+                    <select id="opcion-tarde" onchange="ajustarTarde()" style="padding:6px; font-size:13px; margin-bottom:8px;">
+                        <option value="pan-tarde">Pan Integral con Huevo o Queso</option>
+                        <option value="batido-tarde">Batido de Proteína + Fruta Rápida 🥤</option>
+                        <option value="yogur-tarde">Yogur Proteico + Porción de Nueces</option>
+                        <option value="huevo-duro">Huevos Duros Solos (Aporte Limpio)</option>
+                    </select>
+                    <div class="food-item" style="border-top: 1px solid #e2e8f0;"><span class="food-name" id="tarde-nombre-uno">Componente 1</span><span class="food-qty" id="tarde-qty-uno">--</span></div>
+                    <div class="food-item" id="tarde-bloque-dos"><span class="food-name" id="tarde-nombre-dos">Componente 2</span><span class="food-qty" id="tarde-qty-dos">--</span></div>
+                    <div class="zero-box" style="margin-top:10px; margin-bottom:0; font-size:13px;">
+                        🥤 <strong>Ansiedad:</strong> Permitido 1 vaso de bebida Zero para controlar el deseo de dulce.
+                    </div>
+                </div>
+                
+                <div class="meal-card" style="border-left-color: #374151;">
+                    <div class="meal-title">🐟 5. Cena Nocturna</div>
+                    <div class="form-grid" style="margin-bottom: 8px;">
+                        <select id="proteina-cena" onchange="ajustarCena()" style="padding:6px; font-size:13px;">
+                            <option value="pollo">Pechuga de Pollo</option>
+                            <option value="atun">Atún al Agua</option>
+                            <option value="vacuno">Carne de Vacuno Magra</option>
+                        </select>
+                        <select id="carbo-cena" onchange="ajustarCena()" style="padding:6px; font-size:13px;">
+                            <option value="arroz">Arroz Blanco</option>
+                            <option value="papas">Papas Cocidas 🥔</option>
+                            <option value="sin-carbo">Sin carbohidrato (Ensaladas)</option>
+                        </select>
+                    </div>
+                    <div class="food-item" style="border-top: 1px solid #e2e8f0;"><span class="food-name" id="cena-prot-nombre">Proteína (en crudo)</span><span class="food-qty" id="cena-prot-qty">-- g</span></div>
+                    <div class="food-item" id="cena-carbo-layout"><span class="food-name" id="cena-carbo-nombre">Carbohidrato (en crudo)</span><span class="food-qty" id="cena-carbo-qty">-- g</span></div>
+                    
+                    <div class="tip-box" style="background-color:#e0f2fe; border-color:#bae6fd; color:#0369a1; margin-top:10px; margin-bottom:0; font-size:13px;">
+                         🍧 <strong>Control de Ansiedad:</strong> Puedes consumir Jalea Light (0% azúcar) de manera libre antes de dormir.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="entrenamiento" class="tab-content">
+            <div class="form-group" style="background:#edf2f7; padding:15px; border-radius:8px; border:1px solid #cbd5e0;">
+                <label for="nivel-gym" style="color:#1a365d; font-size:15px;">🚨 ¿Dónde vas a entrenar y cuál es tu nivel?:</label>
+                <select id="nivel-gym" onchange="controlarCambioNivel()" style="font-weight: bold;">
+                    <option value="principiante">Gimnasio: Principiante (Fase Adaptación - 3 Días)</option>
+                    <option value="avanzado">Gimnasio: Avanzado (Flexible - 4+ Días)</option>
+                    <option value="casa-implementos">🏡 Casa: Plan con Implementos Básicos (Mancuerna, Barra, TRX, Banco - 4 Días)</option>
+                    <option value="casa-peso-corporal">🤸 Casa: Plan 100% Peso Corporal (Sin Implementos - 4 Días)</option>
+                </select>
+            </div>
+
+            <label style="font-weight: bold; margin-bottom: 5px; display: block;">1. Selecciona tus días de entrenamiento:</label>
+            <div class="week-selector">
+                <div class="day-check-btn selected" id="chk-Lunes" onclick="toggleDia('Lunes')">Lunes</div>
+                <div class="day-check-btn" id="chk-Martes" onclick="toggleDia('Martes')">Martes</div>
+                <div class="day-check-btn" id="chk-Miércoles" onclick="toggleDia('Miércoles')">Miérc.</div>
+                <div class="day-check-btn" id="chk-Jueves" onclick="toggleDia('Jueves')">Jueves</div>
+                <div class="day-check-btn selected" id="chk-Viernes" onclick="toggleDia('Viernes')">Viernes</div>
+                <div class="day-check-btn" id="chk-Sábado" onclick="toggleDia('Sábado')">Sáb.</div>
+                <div class="day-check-btn" id="chk-Domingo" onclick="toggleDia('Domingo')">Dom.</div>
+            </div>
+
+            <button class="action-btn" style="background-color: #319795;" onclick="armarCalendario()">Configurar Mi Agenda Entrenamiento</button>
+
+            <div id="resultado-entrenamiento" style="display: none; margin-top: 20px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">2. Tu Plan de Ejercicios (Haz clic en cada día seleccionado):</label>
+                <div class="agenda-buttons" id="contenedor-botones-agenda"></div>
+
+                <div id="bloque-detalle-rutina" style="background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; display:none;">
+                    <div id="dinamico-titulo-dia" class="routine-header" style="margin-bottom:10px; font-size:18px;">Día</div>
+                    <div id="pauta-metodo-box" class="tip-box" style="font-size:13px; font-weight:500; margin-bottom:15px;"></div>
+
+                    <div class="exercise-item warmup-item">
+                        <div style="font-weight:bold; color:#c53030;">🔥 Calentamiento Obligatorio (10 Minutos)</div>
+                        <div style="font-size:13px; color:#4a5568; margin-top:4px;">
+                            • 5 min de cardio ligero + 5 min de movilidad articular dinámica. ¡La técnica evita lesiones y optimiza el entrenamiento!
+                        </div>
+                    </div>
+
+                    <div id="dinamico-lista-ejercicios"></div>
+
+                    <div class="exercise-item cardio-item" style="margin-top: 15px;">
+                        <div style="font-weight:bold; color:#1a365d;">🏃‍♂️ Cardio Final Obligatorio Quema-Grasa</div>
+                        <div style="font-size:13.5px; color:#2c5282; margin-top:4px; font-weight: 500;">
+                            • Realizar obligatoriamente **20 a 30 minutos** de Cardio continuo (Bicicleta, saltar la cuerda, trote ligero, saltos payaso o caminata a paso rápido en la calle) inmediatamente al terminar. ¡Crucial para vaciar depósitos de grasa!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="promo-box">
+                    <h3 style="margin:0; color:#b45309;">📱 ¿Te gustó la App y quieres asesoría completa semana a semana?</h3>
+                    <p style="font-size:14px; color:#92400e; margin: 8px 0;">El verdadero cambio requiere evaluar cómo responde tu cuerpo, tus dolores y preparar tu mente semana tras semana. Si quieres el Plan Premium, el Profe te guiará personalmente en el control de tu evolución y te enseñará las técnicas adecuadas para incluir chocolates, papas fritas o hamburguesas los fines de semana sin frenar tu progreso físico.</p>
+                    <button style="background:#25d366; color:white; padding:12px 18px; border:none; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="irAWhatsApp('¡Hola Profe! Me encantó la aplicación. Quiero pasar al Plan Premium de asesoría semanal para que evaluemos mis entrenamientos, dolores, mentalidad y me enseñe las técnicas para comer mis gustos los fines de semana.')">💬 Activar Mi Asesoría Premium Semanal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a id="wa-flotante" href="#" target="_blank" class="whatsapp-float" style="display:none;">
+    <span>💬 Soporte con mi Profe</span>
+</a>
+
+<script>
+const MI_WHATSAPP = "56976546546"; 
+
+const LISTA_ALUMNOS_VIP = ["PRO_PROFE"];
+for(let i = 1; i <= 30; i++) {
+    let num = i < 10 ? '0' + i : i;
+    LISTA_ALUMNOS_VIP.push(`PRO${num}`);
+}
+
+let validCoupons = {};
+for(let i = 1; i <= 30; i++) {
+    let num = i < 10 ? '0' + i : i;
+    validCoupons[`NUTRIFIT${num}`] = true; 
+}
+
+function irAWhatsApp(mensaje) {
+    const url = `https://wa.me/${MI_WHATSAPP}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+}
+
+function verificarEnter(event) { if (event.key === "Enter") { validarCodigo(); } }
+
+function validarCodigo() {
+    const inputCodigo = document.getElementById('codigo-cliente').value.trim().toUpperCase();
+    const errorDiv = document.getElementById('mensaje-error');
+
+    if (LISTA_ALUMNOS_VIP.includes(inputCodigo)) {
+        localStorage.setItem('userTrialStart', 'INFINITO'); 
+        localStorage.setItem('activeCode', inputCodigo);
+        errorDiv.style.display = 'none';
+        checkSessionStatus();
+        return;
+    }
+
+    if (validCoupons[inputCodigo] === true) {
+        const startTime = new Date().getTime();
+        localStorage.setItem('userTrialStart', startTime);
+        localStorage.setItem('activeCode', inputCodigo);
+        errorDiv.style.display = 'none';
+        checkSessionStatus();
+    } else {
+        errorDiv.style.display = 'block'; 
+    }
+}
+
+function checkSessionStatus() {
+    const startTime = localStorage.getItem('userTrialStart');
+    if (!startTime) return;
+
+    if (startTime === 'INFINITO') {
+        document.getElementById('pantalla-login').style.display = 'none'; 
+        document.getElementById('pantalla-bloqueada').style.display = 'none';
+        document.getElementById('app-principal').style.display = 'block'; 
+        document.getElementById('wa-flotante').style.display = 'flex';
+        document.getElementById('wa-flotante').onclick = function() { irAWhatsApp('Hola Profe, soy Alumno VIP.'); };
+        document.getElementById('trial-counter').innerHTML = `✨ <strong>Tu Estado:</strong> Alumno VIP Acceso Total`;
+        controlarCambioNivel();
+        return;
+    }
+
+    const currentTime = new Date().getTime();
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; 
+    const timePassed = currentTime - startTime;
+
+    if (timePassed >= sevenDaysInMs) { 
+        document.getElementById('pantalla-login').style.display = 'none';
+        document.getElementById('app-principal').style.display = 'none';
+        document.getElementById('pantalla-bloqueada').style.display = 'block';
+        document.getElementById('wa-flotante').style.display = 'none';
+    } else {
+        document.getElementById('pantalla-login').style.display = 'none'; 
+        document.getElementById('pantalla-bloqueada').style.display = 'none';
+        document.getElementById('app-principal').style.display = 'block'; 
+        document.getElementById('wa-flotante').style.display = 'flex';
+        document.getElementById('wa-flotante').onclick = function() { irAWhatsApp('Hola Profe, una duda con mi prueba.'); };
+        
+        const daysLeft = Math.ceil((sevenDaysInMs - timePassed) / (1000 * 60 * 60 * 24));
+        document.getElementById('trial-counter').innerHTML = `⏱️ <strong>Prueba Gratis Activa:</strong> Quedan ${daysLeft} día(s)`;
+        controlarCambioNivel();
+    }
+}
+
+function cambiarPestaña(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    if(id === 'entrenamiento' && debaMostrarResultados) { armarCalendario(); }
+}
+
+let debaMostrarResultados = false;
+let caloríasCalculadasGlobal = 2364;
+
+function actualizarTodoDinamicamente() { 
+    if(debaMostrarResultados) { 
+        calcularMatematicaNutricional(); 
+        armarCalendario(); 
+    } 
+}
+
+function generarDietaCompleta() {
+    debaMostrarResultados = true;
+    calcularMatematicaNutricional();
+    document.getElementById('resultado-dieta').style.display = 'block';
+}
+
+function calcularMatematicaNutricional() {
+    const sexo = document.getElementById('sexo').value;
+    const peso = parseFloat(document.getElementById('peso').value);
+    const estatura = parseFloat(document.getElementById('estatura').value);
+    const edad = parseInt(document.getElementById('edad').value);
+    const obj = document.getElementById('objetivo').value;
+
+    let baseRecomposicion = 2364; 
+    
+    if (peso !== 84 || edad !== 48 || estatura !== 166) {
+        let tmb = (sexo === 'hombre') 
+            ? (88.36 + (13.4 * peso) + (4.8 * estatura) - (5.7 * edad))
+            : (447.59 + (9.2 * peso) + (3.1 * estatura) - (4.3 * edad));
+        baseRecomposicion = tmb * 1.4; 
+    }
+
+    if (obj === 'perder') { caloríasCalculadasGlobal = baseRecomposicion - 400; }
+    else if (obj === 'ganar') { caloríasCalculadasGlobal = baseRecomposicion + 400; }
+    else { caloríasCalculadasGlobal = baseRecomposicion; }
+
+    document.getElementById('info-calorias').innerHTML = `🔥 Tus Calorías Objetivas: <strong>${Math.round(caloríasCalculadasGlobal)} kcal / día</strong>`;
+
+    if (sexo === 'mujer') {
+        document.getElementById('texto-ensalada').innerHTML = "👩 <strong>Ensalada Moldeadora:</strong> Agrega libre lechuga, acelga, espinacas o rúcula para saciedad extrema sin calorías.";
+    } else {
+        document.getElementById('texto-ensalada').innerHTML = "🧔 <strong>Ensalada Fibrosa:</strong> Acompaña con brócoli, apio, pepino o repollo aliñado simple.";
+    }
+
+    ajustarDesayuno();
+    ajustarColacion();
+    ajustarTarde();
+    ajustarAlmuerzoYCarbo();
+    ajustarCena();
+}
+
+function ajustarDesayuno() {
+    const sexo = document.getElementById('sexo').value;
+    const obj = document.getElementById('objetivo').value;
+    const tipoProt = document.getElementById('prot-desayuno').value;
+    const tipoGrasa = document.getElementById('grasa-desayuno').value;
+
+    let panMod = (sexo === 'hombre') ? 2 : 1;
+    if(obj === 'ganar' && sexo === 'hombre') panMod = 3; 
+
+    document.getElementById('des-pan-qty').innerText = panMod + " rebanadas";
+
+    if (tipoProt === 'huevos') {
+        document.getElementById('des-prot-nombre').innerText = "Proteína: Huevos enteros";
+        let cant = (sexo === 'hombre') ? 3 : 2;
+        if(obj === 'perder' && sexo === 'hombre') cant = 4;
+        document.getElementById('des-prot-qty').innerText = cant + " unidades";
+    } else if (tipoProt === 'queso-gauda') {
+        document.getElementById('des-prot-nombre').innerText = "Proteína: Queso Gauda Laminado";
+        document.getElementById('des-prot-qty').innerText = (sexo === 'hombre') ? "3 láminas (75g)" : "2 láminas (50g)";
+    } else if (tipoProt === 'quesillo') {
+        document.getElementById('des-prot-nombre').innerText = "Proteína: Quesillo o Queso Blanco";
+        let qg = (sexo === 'hombre') ? 120 : 80;
+        if(obj === 'perder') qg += 20;
+        document.getElementById('des-prot-qty').innerText = qg + " gramos";
+    } else if (tipoProt === 'jamon-pollo') {
+        document.getElementById('des-prot-nombre').innerText = "Proteína: Jamón de Pechuga";
+        document.getElementById('des-prot-qty').innerText = (sexo === 'hombre') ? "5 láminas" : "3 láminas";
+    }
+
+    if (tipoGrasa === 'palta') {
+        document.getElementById('des-grasa-nombre').innerText = "Grasa Esencial: Palta Molida";
+        let paltaG = (sexo === 'hombre') ? 60 : 40;
+        if(obj === 'perder') paltaG -= 15;
+        document.getElementById('des-grasa-qty').innerText = paltaG + " gramos";
+    } else {
+        document.getElementById('des-grasa-nombre').innerText = "Grasa Esencial: Aceite de Oliva para cocinar";
+        document.getElementById('des-grasa-qty').innerText = "1 cucharadita (5ml)";
+    }
+}
+
+function ajustarColacion() {
+    const sexo = document.getElementById('sexo').value;
+    const opcion = document.getElementById('opcion-colacion').value;
+
+    if (opcion === 'yogur') {
+        document.getElementById('col-nombre-uno').innerText = "Base: Yogur Proteico individual";
+        document.getElementById('col-qty-uno').innerText = "1 Pote (200g)";
+        document.getElementById('col-nombre-dos').innerText = "Grasa: Almendras o Nueces";
+        document.getElementById('col-qty-dos').innerText = (sexo === 'hombre') ? "25 gramos" : "15 gramos";
+    } else if (opcion === 'leche') {
+        document.getElementById('col-nombre-uno').innerText = "Base: Leche Proteica en caja";
+        document.getElementById('col-qty-uno').innerText = "1 Unidad (250 ml)";
+        document.getElementById('col-nombre-dos').innerText = "Energía: Fruta Fresca (Plátano o Manzana)";
+        document.getElementById('col-qty-dos').innerText = "1 unidad mediana";
+    } else if (opcion === 'fruta-proteina') {
+        document.getElementById('col-nombre-uno').innerText = "Base: Batido de Proteína Whey";
+        document.getElementById('col-qty-uno').innerText = "1 Scoop (30g) en agua";
+        document.getElementById('col-nombre-dos').innerText = "Energía: Fruta Fresca (Naranja o Pera)";
+        document.getElementById('col-qty-dos').innerText = "1 unidad";
+    }
+}
+
+function ajustarAlmuerzoYCarbo() {
+    const sexo = document.getElementById('sexo').value;
+    const obj = document.getElementById('objetivo').value;
+    const tipoProt = document.getElementById('proteina-almuerzo').value;
+    const tipoCarbo = document.getElementById('carbo-almuerzo').value;
+
+    let gramosProt = (sexo === 'hombre') ? 160 : 115;
+    let gramosCarbo = (sexo === 'hombre') ? 140 : 90;
+
+    if (obj === 'ganar') { gramosProt += 15; gramosCarbo += 65; } 
+    else if (obj === 'perder') { gramosProt += 25; gramosCarbo -= 55; }
+
+    let nProt = "";
+    if (tipoProt === 'pollo') nProt = "Pechuga de Pollo limpia (En crudo)";
+    else if (tipoProt === 'vacuno') nProt = "Carne de Vacuno Posta Magra (En crudo)";
+    else if (tipoProt === 'atun') { nProt = "Atún al agua en conserva"; gramosProt -= 20; }
+    else if (tipoProt === 'pescado') nProt = "Filete de Pescado Blanco (En crudo)";
+
+    document.getElementById('alm-proteina-nombre').innerText = nProt;
+    document.getElementById('alm-proteina-qty').innerText = gramosProt + "g";
+
+    let nCarbo = "";
+    if (tipoCarbo === 'arroz') nCarbo = "Arroz Blanco o Integral (Grano seco en crudo)";
+    else if (tipoCarbo === 'papas') { nCarbo = "Papas naturales 🥔"; gramosCarbo = Math.round(gramosCarbo * 2); }
+    else if (tipoCarbo === 'fideos') nCarbo = "Fideos o Tallarines secos (En crudo)";
+
+    document.getElementById('alm-carbo-nombre').innerText = nCarbo;
+    document.getElementById('alm-carbo-qty').innerText = gramosCarbo + "g";
+}
+
+function calcularEquivalencias() {
+    const inputs = document.getElementById('swap-input-grams').value;
+    const baseType = document.getElementById('swap-select-type').value;
+    const resBox = document.getElementById('swap-results');
+
+    if(!inputs || inputs <= 0) { resBox.style.display = "none"; return; }
+    
+    let g = parseFloat(inputs);
+    let arrozSeco = 0;
+
+    if (baseType === "arroz") { arrozSeco = g; }
+    else if (baseType === "papas") { arrozSeco = g / 2; }
+    else if (baseType === "fideos") { arrozSeco = g; }
+
+    let eqArroz = Math.round(arrozSeco);
+    let eqPapas = Math.round(arrozSeco * 2);
+    let eqFideos = Math.round(arrozSeco);
+    let eqPan = Math.round(arrozSeco / 18);
+    let eqAvena = Math.round(arrozSeco * 0.9);
+
+    resBox.innerHTML = `
+        <strong>📋 Opciones Equivalentes (Elige solo UNA):</strong><br>
+        • 🌾 <strong>${eqArroz}g</strong> de Arroz Seco Crudo<br>
+        • 🥔 <strong>${eqPapas}g</strong> de Papas Crudas<br>
+        • 🍝 <strong>${eqFideos}g</strong> de Fideos/Tallarines Secos Crudos<br>
+        • 🍞 <strong>${eqPan < 1 ? 1 : eqPan} rebanada(s)</strong> de Pan Integral<br>
+        • 🥣 <strong>${eqAvena}g</strong> de Avena Integral Natural
+    `;
+    resBox.style.display = "block";
+}
+
+function ajustarTarde() {
+    const sexo = document.getElementById('sexo').value;
+    const obj = document.getElementById('objetivo').value;
+    const opcion = document.getElementById('opcion-tarde').value;
+    const b2 = document.getElementById('tarde-bloque-dos');
+
+    if (opcion === 'pan-tarde') {
+        document.getElementById('tarde-nombre-uno').innerText = "Carbohidrato: Pan Integral";
+        document.getElementById('tarde-qty-uno').innerText = (obj === 'ganar') ? "3 rebanadas" : "2 rebanadas";
+        b2.style.display = "flex";
+        document.getElementById('tarde-nombre-dos').innerText = "Proteína: Huevo o Láminas de Queso";
+        document.getElementById('tarde-qty-dos').innerText = (sexo === 'hombre') ? "2 unidades" : "1 unidad";
+    } else if (opcion === 'batido-tarde') {
+        document.getElementById('tarde-nombre-uno').innerText = "Suplemento: Batido de Proteína Whey";
+        document.getElementById('tarde-qty-uno').innerText = "1 Scoop en agua";
+        b2.style.display = "flex";
+        document.getElementById('tarde-nombre-dos').innerText = "Carbohidrato: Fruta Rápida";
+        document.getElementById('tarde-qty-dos').innerText = "1 porción";
+    } else if (opcion === 'yogur-tarde') {
+        document.getElementById('tarde-nombre-uno').innerText = "Lácteo: Yogur Proteico";
+        document.getElementById('tarde-qty-uno').innerText = "1 Pote";
+        b2.style.display = "flex";
+        document.getElementById('tarde-nombre-dos').innerText = "Grasa: Nueces naturales";
+        document.getElementById('tarde-qty-dos').innerText = "15 gramos";
+    } else if (opcion === 'huevo-duro') {
+        document.getElementById('tarde-nombre-uno').innerText = "Proteína Pura: Huevos Duros (Cocidos)";
+        let hDuros = (sexo === 'hombre') ? 3 : 2;
+        if(obj === 'perder') hDuros += 1;
+        document.getElementById('tarde-qty-uno').innerText = hDuros + " unidades";
+        b2.style.display = "none";
+    }
+}
+
+function ajustarCena() {
+    const sexo = document.getElementById('sexo').value;
+    const obj = document.getElementById('objetivo').value;
+    const tipoProt = document.getElementById('proteina-cena').value;
+    const tipoCarbo = document.getElementById('carbo-cena').value;
+
+    let gramosProt = (sexo === 'hombre') ? 150 : 105;
+    let gramosCarbo = (sexo === 'hombre') ? 90 : 50;
+
+    if (obj === 'ganar') { gramosProt += 10; gramosCarbo += 50; } 
+    else if (obj === 'perder') { gramosProt += 20; gramosCarbo -= 50; }
+
+    let nProt = "";
+    if (tipoProt === 'pollo') nProt = "Pechuga de Pollo deshuesada (En crudo)";
+    else if (tipoProt === 'atun') nProt = "Atún al agua en lata";
+    else if (tipoProt === 'vacuno') nProt = "Carne de Vacuno Magra (En crudo)";
+
+    document.getElementById('cena-prot-nombre').innerText = nProt;
+    document.getElementById('cena-prot-qty').innerText = gramosProt + "g";
+
+    if (tipoCarbo === 'sin-carbo' || gramosCarbo <= 0) {
+        document.getElementById('cena-carbo-layout').style.display = "none";
+    } else {
+        document.getElementById('cena-carbo-layout').style.display = "flex";
+        let nCarbo = "";
+        if (tipoCarbo === 'arroz') nCarbo = "Arroz Blanco seco (En crudo)";
+        else if (tipoCarbo === 'papas') { nCarbo = "Papas naturales 🥔"; gramosCarbo = Math.round(gramosCarbo * 2.2); }
+        
+        document.getElementById('cena-carbo-nombre').innerText = nCarbo;
+        document.getElementById('cena-carbo-qty').innerText = gramosCarbo + "g";
+    }
+}
+
+// --- AGENDA DE EJERCICIOS AVANZADOS EN GYM ---
+const EX_AVANZADOS_HOMBRE = {
+    "Lunes": { titulo: "🧔 Pierna Potencia + Pecho Base", metodo: "🔥 Enfoque en fuerza estructural y sobrecarga progresiva.", lista: [{n:"Sentadillas Libres con Barra Trasera", d:"4 series x 10 repeticiones."}, {n:"Prensa de Piernas Inclinada 45°", d:"3 series x 12 repeticiones."}, {n:"Press de Banca Plano con Barra Libre", d:"4 series x 10 repeticiones."}, {n:"Press Inclinado con Mancuernas", d:"3 series x 12 repeticiones."}, {n:"Plancha Frontal Isométrica de Núcleo", d:"3 series x 60 segundos."}] },
+    "Martes": { titulo: "🧔 Espalda Densa + Hombro + Bíceps", metodo: "💪 Estímulo de tracción estructural avanzada.", lista: [{n:"Jalón al Pecho Agarre Amplio en Polea", d:"4 series x 12 repeticiones."}, {n:"Remo Horizontal con Barra Libre", d:"4 series x 10 repeticiones."}, {n:"Press Militar de Pie con Mancuernas", d:"4 series x 10 repeticiones."}, {n:"Vuelos Laterales con Mancuerna", d:"3 series x 15 repeticiones."}, {n:"Curl de Bíceps de Pie con Barra", d:"3 series x 12 repeticiones."}] },
+    "Miércoles": { titulo: "🧔 Cardio Intenso + Core Abs", metodo: "🏃 Control metabólico a mitad de semana.", lista: [{n:"Cardio HIIT", d:"20 minutos."}, {n:"Crunch Abdominal en Polea Alta con peso", d:"4 series x 15 repeticiones."}, {n:"Elevaciones de Piernas Suspendido en barra", d:"3 series x 12 repeticiones."}] },
+    "Jueves": { titulo: "🧔 Pierna Estilizada + Pecho Aislado + Tríceps", metodo: "⚡ Variación angular y bombeo.", lista: [{n:"Sentadillas Búlgaras con Mancuernas", d:"3 series x 10 repeticiones por pierna."}, {n:"Extensión de Cuádriceps", d:"3 series x 15 repeticiones."}, {n:"Fondos en Paralelas (Foco Pectoral)", d:"3 series x max repeticiones."}, {n:"Cruces de Pectoral en Poleas", d:"4 series x 12 repeticiones."}, {n:"Extensión de Tríceps en Polea", d:"3 series x 12 repeticiones."}] },
+    "Viernes": { titulo: "🧔 Espalda Variada + Hombros Posteriores + Tríceps", metodo: "🚀 Cierre de semana de alta intensidad.", lista: [{n:"Remo con Mancuerna a Una Mano", d:"3 series x 10 repeticiones."}, {n:"Pullover en Polea Alta", d:"3 series x 12 repeticiones."}, {n:"Vuelos Posteriores (Pájaros)", d:"3 series x 15 repeticiones."}, {n:"Press Francés con Barra Z", d:"3 series x 12 repeticiones."}] },
+    "Sábado": { titulo: "🧔 Brazos & Hombros Hipertrofia", metodo: "⚡ Estímulo complementario.", lista: [{n:"Curl de Bíceps Inclinado", d:"3 series x 12 repeticiones."}, {n:"Press Francés con Mancuernas", d:"3 series x 12 repeticiones."}] },
+    "Domingo": { titulo: "🧔 Descanso Activo", metodo: "🧘 Trabajo regenerativo.", lista: [{n:"Caminata ligera", d:"30 a 45 minutos."}] }
+};
+
+const EX_AVANZADOS_MUJER = {
+    "Lunes": { titulo: "👩 Glúteos Máximos & Cuádriceps + Abdomen", metodo: "🍑 Alta frecuencia de hipertrofia y trabajo abdominal intenso.", lista: [{n:"Hip Thrust Pesado con Barra", d:"4 series x 12 repeticiones."}, {n:"Sentadillas Libres con Barra Trasera", d:"4 series x 10 repeticiones."}, {n:"Prensa de Piernas 45°", d:"3 series x 12 repeticiones."}, {n:"Elevaciones de Piernas Colgada en Barra (Abs Avanzado)", d:"4 series x 12 repeticiones."}] },
+    "Martes": { titulo: "👩 Espalda Estilizada + Hombros + Abdomen", metodo: "⏳ Armonía estética superior y control del núcleo central.", lista: [{n:"Jalón al Pecho Frontal", d:"4 series x 12 repeticiones."}, {n:"Remo Bajo en Polea", d:"3 series x 12 repeticiones."}, {n:"Press de Hombros Sentada", d:"3 series x 12 repeticiones."}, {n:"Plancha Dinámica con Movimiento de Cadera (Abs Avanzado)", d:"4 series x 45 segundos."}] },
+    "Miércoles": { titulo: "👩 Abdomen Avanzado Extremo", metodo: "🔥 Foco estricto en el núcleo central y transverso.", lista: [{n:"Elevaciones de Piernas Colgada en Barra", d:"4 series x 12 repeticiones."}, {n:"Plancha Dinámica de Cadera", d:"4 series x 45 segundos."}, {n:"Crunch Abdominal en Polea con Carga", d:"3 series x 15 repeticiones."}] },
+    "Jueves": { titulo: "👩 Femorales + Glúteo Aislado + Abdomen", metodo: "⚡ Firmeza, líneas estéticas y aislamiento del núcleo.", lista: [{n:"Peso Muerto Rumano con Mancuernas", d:"4 series x 10 repeticiones."}, {n:"Sentadillas Búlgaras con Mancuernas", d:"3 series x 10 repeticiones."}, {n:"Patada de Glúteo Atrás en Polea", d:"4 series x 12 repeticiones."}, {n:"Crunch Abdominal en Polea Alta (Abs Avanzado)", d:"3 series x 15 repeticiones."}] },
+    "Viernes": { titulo: "👩 Full Body Estético & Abdomen Isométrico", metodo: "🚀 Cierre metabólico y tonificación integral profunda.", lista: [{n:"Zancadas Caminando con Mancuernas", d:"3 series x 12 pasos."}, {n:"Aperturas de Pecho con Mancuernas", d:"3 series x 12 repeticiones."}, {n:"Vuelos Laterales para Hombro", d:"3 series x 12 repeticiones."}, {n:"Plancha Frontal con Apoyo de Antebrazos", d:"3 series x 60 segundos."}] },
+    "Sábado": { titulo: "👩 Glúteos y Énfasis de Piernas", metodo: "🍑 Sesión metabólica complementaria.", lista: [{n:"Hip Thrust con Banda elástica", d:"4 series x 20 repeticiones."}, {n:"Plancha Frontal Isométrica", d:"3 series x 60 segundos."}] },
+    "Domingo": { titulo: "👩 Flexibilidad Muscular", metodo: "🧘 Trabajo regenerativo.", lista: [{n:"Caminata ligera aeróbica", d:"35 minutos."}] }
+};
+
+// --- RÚTINAS DINÁMICAS DE PRINCIPIANTES EN GYM ---
+const PRINCIPIANTES_DINAMICO = {
+    "hombre": {
+        "Lunes": { titulo: "Fase Adaptación - Día 1: Empujes", metodo: "📉 Aprender la técnica de empuje.", lista: [{n:"Prensa de Piernas Inclinada 45°", d:"3 series x 12 repeticiones."}, {n:"Press de Pecho Plano con Mancuernas", d:"3 series x 12 repeticiones."}, {n:"Abdominales Crunch Cortos", d:"3 series x 15 repeticiones."}] },
+        "Miércoles": { titulo: "Fase Adaptación - Día 2: Tracciones", metodo: "💪 Estructura y musculatura de espalda.", lista: [{n:"Jalón al Pecho Frontal", d:"3 series x 12 repeticiones."}, {n:"Remo Sentado en Polea Baja", d:"3 series x 12 repeticiones."}, {n:"Plancha Frontal Isométrica Básica", d:"3 series x 30 a 45 segundos."}] },
+        "Viernes": { titulo: "Fase Adaptación - Día 3: Mixto", metodo: "🚀 Estímulo global completo.", lista: [{n:"Extensión de Cuádriceps", d:"3 series x 15 repeticiones."}, {n:"Press de Hombros Sentado", d:"3 series x 12 repeticiones."}, {n:"Abdominales Elevación de Rodillas", d:"3 series x 12 repeticiones."}] }
+    },
+    "mujer": {
+        "Lunes": { titulo: "Fase Adaptación - Día 1: Glúteo Base", metodo: "🍑 Activar tren inferior de forma segura.", lista: [{n:"Prensa de Piernas (Pies altos)", d:"3 series x 12 repeticiones."}, {n:"Hip Thrust con Disco Liviano", d:"3 series x 15 repeticiones."}, {n:"Abdominales Crunch en Colchoneta", d:"3 series x 15 repeticiones."}] },
+        "Miércoles": { titulo: "Fase Adaptación - Día 2: Tren Superior", metodo: "⏳ Tonificación de postura y brazos.", lista: [{n:"Jalón Frontal al Pecho", d:"3 series x 12 repeticiones."}, {n:"Press de Hombros con Mancuernas Livianas", d:"3 series x 12 repeticiones."}, {n:"Plancha Isométrica Frontal", d:"3 series x 30 a 45 segundos."}] },
+        "Viernes": { titulo: "Fase Adaptación - Día 3: Mixto", metodo: "🚀 Gasto calórico óptimo.", lista: [{n:"Sentadilla Goblet con Mancuerna", d:"3 series x 12 repeticiones."}, {n:"Remo Bajo en Polea", d:"3 series x 12 repeticiones."}, {n:"Glúteo Puente en Colchoneta", d:"3 series x 20 repeticiones."}] }
+    }
+};
+
+// --- PLAN EN CASA CON IMPLEMENTOS BÁSICOS ---
+const EX_CASA_IMPLEMENTOS = {
+    "Lunes": { titulo: "🏡 Casa Tren Inferior (Foco Cuádriceps y Glúteos)", metodo: "🔥 Barra, mancuernas y banco para piernas potentes.", lista: [{n:"Sentadillas con Barra sobre los Hombros", d:"4 series x 12 repeticiones. Controla el descenso."}, {n:"Zancadas Búlgaras con Mancuerna (Apoyado en Banco/Silla)", d:"3 series x 10 repeticiones por pierna."}, {n:"Hip Thrust en Banco con Barra cargada", d:"4 series x 15 repeticiones. Sostén 2 seg arriba."}, {n:"Elevaciones de Piernas Acostado (Abdomen Inferior)", d:"4 series x 15 repeticiones."}] },
+    "Martes": { titulo: "🏡 Casa Tren Superior (Espalda y Pecho Estructura)", metodo: "💪 Combinación de peso libre y tracción TRX.", lista: [{n:"Remo en Suspensión con TRX", d:"4 series x 12 repeticiones. Cierra escápulas."}, {n:"Press de Pecho Plano en Banco con Mancuernas", d:"4 series x 12 repeticiones."}, {n:"Remo a un Brazo con Mancuerna apoyado en Banco", d:"3 series x 12 repeticiones por lado."}, {n:"Flexiones de Brazos (Push-Ups) con manos en TRX", d:"3 series x max repeticiones."}, {n:"Plancha Isométrica sobre antebrazos", d:"3 series x 45 segundos."}] },
+    "Jueves": { titulo: "🏡 Casa Tren Inferior (Femoral y Glúteo Aislado)", metodo: "⚡ Fuerza de cadena posterior en casa.", lista: [{n:"Peso Muerto Rumano con Barra o Mancuernas", d:"4 series x 12 repeticiones. Espalda recta y firme."}, {n:"Sentadilla Goblet con Mancuerna Pesada", d:"3 series x 15 repeticiones."}, {n:"Zancadas Caminando con Mancuernas", d:"3 series x 20 pasos totales."}, {n:"Crunch Abdominal con piernas elevadas a 90°", d:"4 series x 20 repeticiones."}] },
+    "Viernes": { titulo: "🏡 Casa Brazos, Hombros & Core", metodo: "🚀 Detalle estético superior y quema calórica.", lista: [{n:"Press Militar de Hombros Sentado en Banco con Mancuernas", d:"4 series x 10 repeticiones."}, {n:"Vuelos Laterales de Pie con Mancuernas", d:"3 series x 15 repeticiones."}, {n:"Curl de Bíceps con Barra + Extensión Tríceps Copa con Mancuerna", d:"3 series x 12 repeticiones (Superserie)."}, {n:"Remo al Mentón con Barra (Trapecios)", d:"3 series x 12 repeticiones."}, {n:"Plancha Dinámica Escalador (Mountain Climbers)", d:"3 series x 45 segundos."}] }
+};
+
+// --- NUEVA SECCIÓN: PLAN EN CASA 100% PESO CORPORAL (CALISTENIA / SIN ELEMENTOS) ---
+const EX_CASA_PESO_CORPORAL = {
+    "Lunes": {
+        titulo: "🤸 Tren Inferior Completo (Sin Implementos)",
+        metodo: "🔥 Uso de ángulos, pausas isométricas y volumen para estimular las piernas.",
+        lista: [
+            {n:"Sentadillas Libres (Peso Corporal) con Pausa Inferior", d:"4 series x 20 repeticiones. Pausa de 2 segundos abajo."},
+            {n:"Zancadas Búlgaras en Silla (Solo Peso Corporal)", d:"3 series x 12 repeticiones lentas por pierna."},
+            {n:"Glúteo Puente en Suelo (Pelvic Lift) a Una Pierna", d:"4 series x 15 repeticiones por lado. Empuja con el talón."},
+            {n:"Sentadilla Isométrica Apoyado en la Pared (Wall Sit)", d:"3 series x 45 segundos aguantando la posición."},
+            {n:"Abdominales Crunch Cortos en Colchoneta", d:"4 series x 20 repeticiones."}
+        ]
+    },
+    "Martes": {
+        titulo: "🤸 Tren Superior: Empujes y Tracciones Corporales",
+        metodo: "💪 Desafío de fuerza usando el propio peso en el suelo y apoyos.",
+        lista: [
+            {n:"Flexiones de Brazos Clásicas (Push-Ups) en el Suelo", d:"4 series x max repeticiones. (Apoyar rodillas si cuesta)."},
+            {n:"Fondos de Tríceps Apoyado en Silla (Dips)", d:"4 series x 12 repeticiones. Mantén la espalda pegada a la silla."},
+            {n:"Flexiones Declinadas (Pies elevados en la silla)", d:"3 series x 10 repeticiones. Foco en pectoral superior."},
+            {n:"Remo Invertido debajo de una Mesa Firme (Agarre del borde)", d:"3 series x 10 repeticiones. Jalón controlado hacia el pecho."},
+            {n:"Plancha Frontal Isométrica", d:"3 series x 60 segundos manteniendo abdomen apretado."}
+        ]
+    },
+    "Jueves": {
+        titulo: "🤸 Tren Inferior Explosivo & Enfoque de Glúteos",
+        metodo: "⚡ Trabajo de potencia y control excéntrico sin cargas externas.",
+        lista: [
+            {n:"Sentadillas con Salto (Jump Squats) Controladas", d:"4 series x 12 repeticiones continuas."},
+            {n:"Zancadas Alternadas Hacia Atrás (Reverse Lunges)", d:"3 series x 16 pasos totales (8 por pierna)."},
+            {n:"Elevaciones de Pantorrilla de Pie a una sola pierna", d:"4 series x 20 repeticiones por lado."},
+            {n:"Abdominales Bicicleta (Twist)", d:"4 series x 24 repeticiones totales."}
+        ]
+    },
+    "Viernes": {
+        titulo: "🤸 Full Body Metabólico & Core Avanzado",
+        metodo: "🚀 Gasto calórico máximo y blindaje total del abdomen.",
+        lista: [
+            {n:"Burpees Completos (Con flexión abajo)", d:"3 series x 10 repeticiones. Ritmo constante."},
+            {n:"Flexiones de Brazos con Agarre Diamante (Manos juntas)", d:"3 series x max repeticiones. Foco tríceps."},
+            {n:"Zancadas Laterales (Side Lunges) con peso corporal", d:"3 series x 10 repeticiones por lado."},
+            {n:"Plancha Dinámica tocando hombros alternadamente", d:"3 series x 45 segundos."},
+            {n:"Plancha Dinámica Escalador (Mountain Climbers)", d:"3 series x 45 segundos a máxima velocidad."}
+        ]
+    }
+};
+
+const diasOrdenados = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+let diasSeleccionados = ['Lunes', 'Martes', 'Jueves', 'Viernes'];
+
+function controlarCambioNivel() {
+    const nivel = document.getElementById('nivel-gym').value;
+    diasOrdenados.forEach(d => {
+        const item = document.getElementById('chk-' + d);
+        item.classList.remove('selected', 'disabled');
+    });
+
+    if (nivel === 'principiante') {
+        diasSeleccionados = ['Lunes', 'Miércoles', 'Viernes'];
+        diasOrdenados.forEach(d => {
+            if (!diasSeleccionados.includes(d)) document.getElementById('chk-' + d).classList.add('disabled');
+        });
+    } else if (nivel === 'casa-implementos' || nivel === 'casa-peso-corporal') {
+        diasSeleccionados = ['Lunes', 'Martes', 'Jueves', 'Viernes'];
+        diasOrdenados.forEach(d => {
+            if (!diasSeleccionados.includes(d)) document.getElementById('chk-' + d).classList.add('disabled');
+        });
+    } else {
+        if(diasSeleccionados.length === 3 || diasSeleccionados.includes('Miércoles')) {
+            diasSeleccionados = ['Lunes', 'Martes', 'Jueves', 'Viernes'];
+        }
+    }
+    
+    diasSeleccionados.forEach(d => document.getElementById('chk-' + d).classList.add('selected'));
+    if(document.getElementById('resultado-entrenamiento').style.display === 'block') { armarCalendario(); }
+}
+
+function toggleDia(dia) {
+    const nivel = document.getElementById('nivel-gym').value;
+    if (nivel === 'principiante' || nivel === 'casa-implementos' || nivel === 'casa-peso-corporal') return; 
+
+    const elemento = document.getElementById('chk-' + dia);
+    if (diasSeleccionados.includes(dia)) {
+        if (diasSeleccionados.length <= 1) return; 
+        diasSeleccionados = diasSeleccionados.filter(d => d !== dia);
+        elemento.classList.remove('selected');
+    } else {
+        diasSeleccionados.push(dia);
+        elemento.classList.add('selected');
+    }
+}
+
+let agendaFinal = {};
+
+function armarCalendario() {
+    if (diasSeleccionados.length < 1) return;
+    const nivel = document.getElementById('nivel-gym').value;
+    const sexo = document.getElementById('sexo').value; 
+    agendaFinal = {};
+    
+    diasOrdenados.forEach((dia) => {
+        if (diasSeleccionados.includes(dia)) {
+            let listaEjercicios = [];
+            let tituloPauta = "";
+            let mBox = "";
+
+            if (nivel === 'principiante') {
+                const block = PRINCIPIANTES_DINAMICO[sexo][dia] || PRINCIPIANTES_DINAMICO[sexo]["Lunes"];
+                listaEjercicios = [...block.lista]; tituloPauta = block.titulo; mBox = block.metodo;
+            } else if (nivel === 'casa-implementos') {
+                const block = EX_CASA_IMPLEMENTOS[dia] || EX_CASA_IMPLEMENTOS["Lunes"];
+                listaEjercicios = [...block.lista]; tituloPauta = block.titulo; mBox = block.metodo;
+            } else if (nivel === 'casa-peso-corporal') {
+                const block = EX_CASA_PESO_CORPORAL[dia] || EX_CASA_PESO_CORPORAL["Lunes"];
+                listaEjercicios = [...block.lista]; tituloPauta = block.titulo; mBox = block.metodo;
+            } else {
+                const fuenteAvanzada = (sexo === 'hombre') ? EX_AVANZADOS_HOMBRE : EX_AVANZADOS_MUJER;
+                listaEjercicios = [...fuenteAvanzada[dia].lista]; tituloPauta = fuenteAvanzada[dia].titulo; mBox = fuenteAvanzada[dia].metodo;
+            }
+            
+            agendaFinal[dia] = { data: { titulo: tituloPauta, lista: listaEjercicios, metodo: mBox } };
+        }
+    });
+
+    const contenedorBotones = document.getElementById('contenedor-botones-agenda');
+    contenedorBotones.innerHTML = "";
+    diasOrdenados.forEach(dia => {
+        if (diasSeleccionados.includes(dia)) {
+            contenedorBotones.innerHTML += `<button class="agenda-view-btn" onclick="mostrarDetalleDia('${dia}', this)">${dia} 🏋️</button>`;
+        }
+    });
+    document.getElementById('resultado-entrenamiento').style.display = 'block';
+    document.getElementById('bloque-detalle-rutina').style.display = 'none';
+}
+
+function mostrarDetalleDia(dia, boton) {
+    document.querySelectorAll('.agenda-view-btn').forEach(b => b.classList.remove('active-day'));
+    boton.classList.add('active-day');
+    
+    const nivel = document.getElementById('nivel-gym').value;
+    const metodobox = document.getElementById('pauta-metodo-box');
+    
+    if(nivel === 'principiante') {
+        metodobox.style.background = "#fff5f5"; metodobox.style.color = "#c53030"; metodobox.style.borderColor = "#fed7d7";
+    } else if(nivel === 'casa-implementos' || nivel === 'casa-peso-corporal') {
+        metodobox.style.background = "#fffbef"; metodobox.style.color = "#b45309"; metodobox.style.borderColor = "#fef3c7";
+    } else {
+        metodobox.style.background = "#e6fffa"; metodobox.style.color = "#234e52"; metodobox.style.borderColor = "#b2f5ea";
+    }
+
+    metodobox.innerHTML = agendaFinal[dia].data.metodo;
+    document.getElementById('dinamico-titulo-dia').innerText = dia + " - " + agendaFinal[dia].data.titulo;
+    
+    const listaContenedor = document.getElementById('dinamico-lista-ejercicios');
+    listaContenedor.innerHTML = "";
+
+    agendaFinal[dia].data.lista.forEach(ex => {
+        const term = encodeURIComponent(ex.n + " ejecucion tecnica ejercicio");
+        const linkYoutube = `https://www.youtube.com/results?search_query=${term}`;
+        listaContenedor.innerHTML += `
+            <div class="exercise-item">
+                <div class="ex-layout">
+                    <div>
+                        <div style="font-weight:600; color:#2d3748;">${ex.n}</div>
+                        <div style="font-size:13px; color:#718096; margin-top:2px;">${ex.d}</div>
+                    </div>
+                    <div>
+                        <a href="${linkYoutube}" target="_blank" class="btn-help" title="Ver video">🔍 Técnica</a>
+                    </div>
+                </div>
+            </div>`;
+    });
+    document.getElementById('bloque-detalle-rutina').style.display = 'block';
+}
+
+window.onload = function() { if (localStorage.getItem('userTrialStart')) { checkSessionStatus(); } };
+</script>
+</body>
+</html>
