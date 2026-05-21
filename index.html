@@ -353,6 +353,27 @@ function validarCodigo() {
     const inputCodigo = document.getElementById('codigo-cliente').value.trim().toUpperCase();
     const errorDiv = document.getElementById('mensaje-error');
 
+    // Aquí verificamos qué plan es
+    if (inputCodigo.startsWith("PRO")) {
+        // Plan PRO: 30 días
+        localStorage.setItem('userTrialStart', new Date().getTime());
+        localStorage.setItem('diasLimite', 30);
+        errorDiv.style.display = 'none';
+        checkSessionStatus();
+    } else if (inputCodigo.startsWith("NUTRIFIT")) {
+        // Plan NUTRIFIT: 7 días
+        localStorage.setItem('userTrialStart', new Date().getTime());
+        localStorage.setItem('diasLimite', 7);
+        errorDiv.style.display = 'none';
+        checkSessionStatus();
+    } else {
+        // Si no es ninguno de los anteriores, error
+        errorDiv.style.display = 'block';
+    }
+} // <--- ESTA ES LA LLAVE QUE CIERRA TODA LA FUNCIÓN
+    
+    
+
     if (LISTA_ALUMNOS_VIP.includes(inputCodigo)) {
         localStorage.setItem('userTrialStart', 'INFINITO'); 
         localStorage.setItem('activeCode', inputCodigo);
@@ -387,16 +408,38 @@ function checkSessionStatus() {
         return;
     }
 
-    const currentTime = new Date().getTime();
-    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; 
+const currentTime = new Date().getTime();
+    
+    // Aquí es donde ocurre la magia: leemos los días configurados en el validarCodigo
+    const diasLimite = parseInt(localStorage.getItem('diasLimite')) || 7;
+    const limiteEnMs = diasLimite * 24 * 60 * 60 * 1000;
     const timePassed = currentTime - startTime;
 
-    if (timePassed >= sevenDaysInMs) { 
+    if (timePassed >= limiteEnMs) { 
+        // Si ya pasó el tiempo (7 o 30 días), bloqueamos
         document.getElementById('pantalla-login').style.display = 'none';
         document.getElementById('app-principal').style.display = 'none';
         document.getElementById('pantalla-bloqueada').style.display = 'block';
         document.getElementById('wa-flotante').style.display = 'none';
     } else {
+        // Si aún está activo, mostramos la App
+        document.getElementById('pantalla-login').style.display = 'none'; 
+        document.getElementById('pantalla-bloqueada').style.display = 'none';
+        document.getElementById('app-principal').style.display = 'block'; 
+        document.getElementById('wa-flotante').style.display = 'flex';
+        
+        // Ajustamos los textos automáticamente
+        const diasRestantes = Math.ceil((limiteEnMs - timePassed) / (1000 * 60 * 60 * 24));
+        const tipoPlan = diasLimite === 30 ? "Premium" : "Prueba Gratis";
+        
+        document.getElementById('wa-flotante').onclick = function() { 
+            irAWhatsApp(diasLimite === 30 ? 'Hola Profe, soy Alumno VIP.' : 'Hola Profe, una duda con mi prueba.'); 
+        };
+        
+        document.getElementById('trial-counter').innerHTML = `⏱️ <strong>${tipoPlan} Activo:</strong> Quedan ${diasRestantes} día(s)`;
+        controlarCambioNivel();
+    }
+
         document.getElementById('pantalla-login').style.display = 'none'; 
         document.getElementById('pantalla-bloqueada').style.display = 'none';
         document.getElementById('app-principal').style.display = 'block'; 
