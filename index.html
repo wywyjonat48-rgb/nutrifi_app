@@ -353,24 +353,36 @@ function validarCodigo() {
     const inputCodigo = document.getElementById('codigo-cliente').value.trim().toUpperCase();
     const errorDiv = document.getElementById('mensaje-error');
 
-    // Aquí verificamos qué plan es
+    // 1. Verificamos si es Alumno VIP (Acceso Infinito)
+    if (LISTA_ALUMNOS_VIP.includes(inputCodigo)) {
+        localStorage.setItem('userTrialStart', 'INFINITO'); 
+        localStorage.setItem('activeCode', inputCodigo);
+        errorDiv.style.display = 'none';
+        checkSessionStatus();
+        return;
+    }
+
+    // 2. Verificamos si es Plan PRO (30 días)
     if (inputCodigo.startsWith("PRO")) {
-        // Plan PRO: 30 días
         localStorage.setItem('userTrialStart', new Date().getTime());
         localStorage.setItem('diasLimite', 30);
         errorDiv.style.display = 'none';
         checkSessionStatus();
-    } else if (inputCodigo.startsWith("NUTRIFIT")) {
-        // Plan NUTRIFIT: 7 días
+    } 
+    // 3. Verificamos si es Plan NUTRIFIT (7 días)
+    else if (inputCodigo.startsWith("NUTRIFIT") || validCoupons[inputCodigo] === true) {
         localStorage.setItem('userTrialStart', new Date().getTime());
         localStorage.setItem('diasLimite', 7);
         errorDiv.style.display = 'none';
         checkSessionStatus();
-    } else {
-        // Si no es ninguno de los anteriores, error
+    } 
+    // 4. Si no es nada de lo anterior, error
+    else {
         errorDiv.style.display = 'block';
     }
-} // <--- ESTA ES LA LLAVE QUE CIERRA TODA LA FUNCIÓN
+}
+    
+ // <--- ESTA ES LA LLAVE QUE CIERRA TODA LA FUNCIÓN
     
     
 
