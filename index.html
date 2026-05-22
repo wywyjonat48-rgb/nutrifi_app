@@ -330,11 +330,26 @@
 <script>
 const MI_WHATSAPP = "56976546546"; 
 
-const LISTA_ALUMNOS_VIP = ["PRO_PROFE"];
-for(let i = 1; i <= 30; i++) {
-    let num = i < 10 ? '0' + i : i;
-    LISTA_ALUMNOS_VIP.push(`PRO${num}`);
-}
+const LISTA_ALUMNOS_VIP = [
+    "PRO_PROFE",
+    "PRO01", "PRO02", "PRO03", "PRO04", "PRO05", 
+    "PRO06", "PRO07", "PRO08", "PRO09", "PRO10",
+    "PRO11", "PRO12", "PRO13", "PRO14", "PRO15",
+    "PRO16", "PRO17", "PRO18", "PRO19", "PRO20",
+    "PRO21", "PRO22", "PRO23", "PRO24", "PRO25",
+    "PRO26", "PRO27", "PRO28", "PRO29", "PRO30"
+];
+    
+     
+    
+    
+    
+    
+    
+
+
+    
+
 
 let validCoupons = {};
 for(let i = 1; i <= 30; i++) {
@@ -352,39 +367,6 @@ function verificarEnter(event) { if (event.key === "Enter") { validarCodigo(); }
 function validarCodigo() {
     const inputCodigo = document.getElementById('codigo-cliente').value.trim().toUpperCase();
     const errorDiv = document.getElementById('mensaje-error');
-
-    // 1. Verificamos si es Alumno VIP (Acceso Infinito)
-    if (LISTA_ALUMNOS_VIP.includes(inputCodigo)) {
-        localStorage.setItem('userTrialStart', 'INFINITO'); 
-        localStorage.setItem('activeCode', inputCodigo);
-        errorDiv.style.display = 'none';
-        checkSessionStatus();
-        return;
-    }
-
-    // 2. Verificamos si es Plan PRO (30 días)
-    if (inputCodigo.startsWith("PRO")) {
-        localStorage.setItem('userTrialStart', new Date().getTime());
-        localStorage.setItem('diasLimite', 30);
-        errorDiv.style.display = 'none';
-        checkSessionStatus();
-    } 
-    // 3. Verificamos si es Plan NUTRIFIT (7 días)
-    else if (inputCodigo.startsWith("NUTRIFIT") || validCoupons[inputCodigo] === true) {
-        localStorage.setItem('userTrialStart', new Date().getTime());
-        localStorage.setItem('diasLimite', 7);
-        errorDiv.style.display = 'none';
-        checkSessionStatus();
-    } 
-    // 4. Si no es nada de lo anterior, error
-    else {
-        errorDiv.style.display = 'block';
-    }
-}
-    
- // <--- ESTA ES LA LLAVE QUE CIERRA TODA LA FUNCIÓN
-    
-    
 
     if (LISTA_ALUMNOS_VIP.includes(inputCodigo)) {
         localStorage.setItem('userTrialStart', 'INFINITO'); 
@@ -420,38 +402,16 @@ function checkSessionStatus() {
         return;
     }
 
-const currentTime = new Date().getTime();
-    
-    // Aquí es donde ocurre la magia: leemos los días configurados en el validarCodigo
-    const diasLimite = parseInt(localStorage.getItem('diasLimite')) || 7;
-    const limiteEnMs = diasLimite * 24 * 60 * 60 * 1000;
+    const currentTime = new Date().getTime();
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; 
     const timePassed = currentTime - startTime;
 
-    if (timePassed >= limiteEnMs) { 
-        // Si ya pasó el tiempo (7 o 30 días), bloqueamos
+    if (timePassed >= sevenDaysInMs) { 
         document.getElementById('pantalla-login').style.display = 'none';
         document.getElementById('app-principal').style.display = 'none';
         document.getElementById('pantalla-bloqueada').style.display = 'block';
         document.getElementById('wa-flotante').style.display = 'none';
     } else {
-        // Si aún está activo, mostramos la App
-        document.getElementById('pantalla-login').style.display = 'none'; 
-        document.getElementById('pantalla-bloqueada').style.display = 'none';
-        document.getElementById('app-principal').style.display = 'block'; 
-        document.getElementById('wa-flotante').style.display = 'flex';
-        
-        // Ajustamos los textos automáticamente
-        const diasRestantes = Math.ceil((limiteEnMs - timePassed) / (1000 * 60 * 60 * 24));
-        const tipoPlan = diasLimite === 30 ? "Premium" : "Prueba Gratis";
-        
-        document.getElementById('wa-flotante').onclick = function() { 
-            irAWhatsApp(diasLimite === 30 ? 'Hola Profe, soy Alumno VIP.' : 'Hola Profe, una duda con mi prueba.'); 
-        };
-        
-        document.getElementById('trial-counter').innerHTML = `⏱️ <strong>${tipoPlan} Activo:</strong> Quedan ${diasRestantes} día(s)`;
-        controlarCambioNivel();
-    }
-
         document.getElementById('pantalla-login').style.display = 'none'; 
         document.getElementById('pantalla-bloqueada').style.display = 'none';
         document.getElementById('app-principal').style.display = 'block'; 
